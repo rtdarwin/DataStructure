@@ -1,0 +1,7 @@
+# Programming logs
+_*
+
+# temporary files
+*.o
+*.a
+
