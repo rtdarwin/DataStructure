@@ -3,13 +3,13 @@
 * 004及从006开始,使用模版来写
 
 ## 进度
-+ 001 已完成
-+ 002 complex已完成
-- 002 dynamic-link-list夭折了...
-- 003 未写完
-- 004 未开始写
-+ 005 已完成
-- 006 未开始
-- 007 未debug
-- 008 未开始
++ `sequential-mapping-lis` (001) 已完成
++ `complex` (002) 已完成
+- `dynamic-link-list` (002) 夭折了...
+- `static-link-list` (003) 未写完
+- `stack` (004) 未开始写
++ `round-robin-queue` (005) 已完成
+- `string` (006) 未开始
+- `sequential-spare-matrix` (007) 未debug
+- `cross-spare-matrix` (008) 未开始
 
