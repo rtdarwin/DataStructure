@@ -4,8 +4,11 @@ _*
 # temporary files
 *.o
 *.a
+*.swp
 
 # makefile 
 makefile
 Makefile
 
+# test-file
+*main*

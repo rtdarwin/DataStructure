@@ -10,6 +10,6 @@
 - `stack` (004) 未开始写
 + `round-robin-queue` (005) 已完成
 - `string` (006) 未开始
-- `sequential-spare-matrix` (007) 未debug
-- `cross-spare-matrix` (008) 未开始
+- `sequential-sparse-matrix` (007) 未debug
+- `cross-sparse-matrix` (008) 未开始
 
