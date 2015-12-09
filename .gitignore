@@ -12,6 +12,4 @@ Makefile
 
 # test-file
 *main*
-a.out
-*.in
-*.test
+*test*
