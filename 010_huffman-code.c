@@ -60,7 +60,6 @@ int statistic( FILE *in, FILE *stttc_file ){
 			fprintf( stttc_file, "%c %d\n", i, count[i] );
 		}
 	}
-printf( ">Statistic complete\n" );
 	//Return char-count
 	rewind( in );
 	rewind( stttc_file );
@@ -92,7 +91,6 @@ HuffmanTree generate_HT( FILE *stttc_file, int total, FILE *HT_file ){
 		HT[i].lchild = s1; HT[i].rchild = s2;
 		HT[s1].parent = HT[s2].parent = i;
 	}
-printf( ">Generate HT complete\n" );
 	//Write to HT_file
 	for( int i = 1; i < 2*total; i++ ){
 		fprintf( HT_file, "%c%4d %4d %4d %4d\n",
@@ -113,7 +111,6 @@ HuffmanCode generate_HC( HuffmanTree tree, int total, FILE *HC_file ){
 	code_string[total-1] = '\0';
 	for( int i = 1; i <= total; i++ ){
 		int begin = total-1;
-//Wrong here.
 		int last = i;
 		int cur = tree[last].parent;
 		for( ; cur != 0; last = cur, cur = tree[cur].parent ){
@@ -128,7 +125,6 @@ HuffmanCode generate_HC( HuffmanTree tree, int total, FILE *HC_file ){
 		strcpy( HC[i].code, code_string+begin );
 	}
 	free( code_string );
-printf( ">Generate HC complete\n" );
 	//Write to HC_file
 	for( int i = 1; i <= total; i++ ){
 		fprintf( HC_file, "%c  %s\n", tree[i].value, HC[i].code );
@@ -148,7 +144,6 @@ void Code_file( FILE *in, HuffmanCode HC, FILE *out ){
 	while( i++ < 128 ){
 		if( i == HC[j].value ){ code[i] = HC[j++].code; }
 	}
-printf( ">Map complete\n" );
 	//Write
 	int ch;
 	while( (ch=fgetc(in)) != EOF ){
@@ -156,10 +151,14 @@ printf( ">Map complete\n" );
 			fprintf( out, "%s", code[ch] );
 		}
 	}
-printf( ">Code file complete\n" );
 	//Rewind
 	rewind( in );
 	rewind( out );
+}
+
+//Waiting for implementation.
+void code_file( FILE *in, HuffmanCode HC, FILE *out ){
+	
 }
 
 void select_two_small( HuffmanTree tree, int n, int *s1, int *s2 ){
@@ -186,6 +185,3 @@ void select_two_small( HuffmanTree tree, int n, int *s1, int *s2 ){
 	}
 }
 
-void code_file( FILE *in, HuffmanCode HC, FILE *out ){
-	
-}
