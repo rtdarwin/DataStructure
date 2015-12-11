@@ -51,7 +51,6 @@ int statistic( FILE *in, FILE *stttc_file ){
 	int count[128] = {0};
 	int ch = 0;
 	while( (ch=fgetc(in)) != EOF ){
-		if( ch!='\n' )
 			count[ch]++;
 	}
 	//Write file
@@ -72,10 +71,9 @@ HuffmanTree generate_HT( FILE *stttc_file, int total, FILE *HT_file ){
 	//Get statistic to fill HT[1 ~ total]
 	HuffmanTree HT = (HuffmanTree) malloc( sizeof(HTNode) * (2*total) ); //HT[0] not used.
 	for( int i = 1; i <= total; i++ ){
-		int wt, val, ch;
+		int wt, val;
 		fscanf( stttc_file, "%c%d", &val, &wt );
-		while( (ch=fgetc(stttc_file)) != '\n' )
-			;
+		fgetc( stttc_file ); //Dismiss the '\n' in the line end
 		HT[i].value = val;
 		HT[i].weight = wt;
 		HT[i].parent = HT[i].lchild = HT[i].rchild = 0;
@@ -142,11 +140,8 @@ void Code_file( FILE *in, HuffmanCode HC, FILE *out ){
 	//Write
 	int ch;
 	while( (ch=fgetc(in)) != EOF ){
-		if( code[ch] != NULL ){
-			fprintf( out, "%s", code[ch] );
-		}
+		fprintf( out, "%s", code[ch] );
 	}
-	fputc( '\n', out ); //Add a '\n' at the end of file to simulate *nix file format
 	//Rewind
 	rewind( in );
 	rewind( out );
@@ -168,7 +163,6 @@ void code_file( FILE *in, HuffmanCode HC, FILE *out ){
  	 * 以unsigned char的方式写入 out-file
  	 * 最后，如果最后几个bit组不成byte，直接写入
  	 */
-//或因为huffman编码的时候忽略了 '\n' 所以编码到 '\n' 时 code['\n']为NULL所以崩溃了
 	fprintf( out, "%"PRId32, char_total );
 	unsigned char cur_byte = 0;
 	int cur_byte_remaining_length = 8;
@@ -184,13 +178,12 @@ void code_file( FILE *in, HuffmanCode HC, FILE *out ){
 			}
 		}
 	}
-printf( ">>Write to out-file complete\n" );
 	if( cur_byte_remaining_length != 8 ){
 		fputc( cur_byte, out );
 	}
-	fputc( '\n', out ); //Add a '\n' at the end of file to simulate *nix file format
 	
 	rewind( in );
+	rewind( out );
 }
 
 void select_two_small( HuffmanTree tree, int n, int *s1, int *s2 ){

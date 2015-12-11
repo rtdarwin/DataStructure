@@ -10,6 +10,7 @@ typedef struct{
 }HTNode, *HuffmanTree;
 
 HuffmanTree rebuild_HT( FILE *HT_file );
+int get_HT_root_location( HuffmanTree HT );
 void Decode( FILE *coded, HuffmanTree HT, FILE *origin );
 void decode( FILE *coded, HuffmanTree HT, FILE *origin );
 
@@ -19,11 +20,10 @@ int main(void){
 	FILE *origin = fopen( "010_test.origin", "w" );
 
 	HuffmanTree HT = rebuild_HT( HT_file );
-	Decode( coded, HT, origin );
+	decode( coded, HT, origin );
 
 	fclose( HT_file );
 	fclose( coded );
-//The program will crush when I attemp to close File 'origin'
 	fclose( origin );
 	free( HT );
 	return 0;
@@ -64,7 +64,6 @@ void Decode( FILE *coded, HuffmanTree HT, FILE *origin ){
 			cur = root; //树指针回退
 		}
 	}
-	fputc( '\n', origin ); //Add a '\n' at the file end to simulate *nix file
 
 	rewind( coded );
 	rewind( origin );
@@ -79,7 +78,7 @@ void decode( FILE *coded, HuffmanTree HT, FILE *origin ){
 	int HT_root = get_HT_root_location( HT );
 	int cur_location_in_HT = HT_root;
 	unsigned char cur_byte = fgetc( coded );
-	while( decoded_char_count <= total ){
+	while( decoded_char_count < total ){
 		if( bit_unused == 0 ){ //Read another byte
 			cur_byte = fgetc( coded );
 			bit_unused = 8;
