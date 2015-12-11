@@ -168,6 +168,7 @@ void code_file( FILE *in, HuffmanCode HC, FILE *out ){
  	 * 以unsigned char的方式写入 out-file
  	 * 最后，如果最后几个bit组不成byte，直接写入
  	 */
+//或因为huffman编码的时候忽略了 '\n' 所以编码到 '\n' 时 code['\n']为NULL所以崩溃了
 	fprintf( out, "%"PRId32, char_total );
 	unsigned char cur_byte = 0;
 	int cur_byte_remaining_length = 8;
@@ -179,6 +180,7 @@ void code_file( FILE *in, HuffmanCode HC, FILE *out ){
 			if( cur_byte_remaining_length == 0 ){
 				fputc( cur_byte, out );
 				cur_byte_remaining_length = 8;
+				cur_byte = 0;
 			}
 		}
 	}
