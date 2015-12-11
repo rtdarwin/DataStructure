@@ -1,6 +1,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<limits.h>
+#include<inttypes.h>
 #include<string.h>
 
 typedef struct{
@@ -10,12 +11,13 @@ typedef struct{
 }HTNode, *HuffmanTree;
 typedef struct{
 	int value;
-	char *code;
+	unsigned char *code;
 }CodeNode, *HuffmanCode;
 
 int statistic( FILE *in, FILE *stttc_file );
 HuffmanTree generate_HT( FILE *stttc_file, int total, FILE *HT_file );
 void select_two_small( HuffmanTree tree, int n, int *s1, int *s2 );
+unsigned char **map_code_table( HuffmanCode HC );
 HuffmanCode generate_HC( HuffmanTree tree, int total, FILE *HC_file );
 void Code_file( FILE *in, HuffmanCode HC, FILE *out );
 void code_file( FILE *in, HuffmanCode HC, FILE *out );
@@ -27,10 +29,10 @@ int main(void){
 	FILE *HC_file = fopen( "010_test.huffman-code", "w+" );
 	FILE *out = fopen( "010_test.out", "w" );
 
-	int total = statistic( in, stttc_file );
-	HuffmanTree tree = generate_HT( stttc_file, total, HT_file );
-	HuffmanCode code = generate_HC( tree, total, HC_file );
-	Code_file( in, code, out );
+	int symbol_total = statistic( in, stttc_file );
+	HuffmanTree tree = generate_HT( stttc_file, symbol_total, HT_file );
+	HuffmanCode code = generate_HC( tree, symbol_total, HC_file );
+	code_file( in, code, out );
 	
 	fclose( in );
 	fclose( stttc_file );
@@ -43,7 +45,7 @@ int main(void){
 	return 0;
 }
 
-//---------------IMPLEMENTATION--------------
+//------------------------IMPLEMENTATION--------------------------
 int statistic( FILE *in, FILE *stttc_file ){
 	//Get statistic
 	int count[128] = {0};
@@ -106,7 +108,7 @@ HuffmanCode generate_HC( HuffmanTree tree, int total, FILE *HC_file ){
 	HuffmanCode HC = (HuffmanCode) malloc( (total+1)*sizeof(CodeNode) ); 
 	    //HC[0] not used.
 	//new a temporary string to calculate code
-	char *code_string = (char *) malloc( total*sizeof(char) ); 
+	unsigned char *code_string = (unsigned char *) malloc( total*sizeof(unsigned char) ); 
 	    //The depth of HuffmanTree is less than total
 	code_string[total-1] = '\0';
 	for( int i = 1; i <= total; i++ ){
@@ -121,8 +123,8 @@ HuffmanCode generate_HC( HuffmanTree tree, int total, FILE *HC_file ){
 			}
 		}
 		HC[i].value = tree[i].value;
-		HC[i].code = (char*) malloc( (total-begin)*sizeof(char) );
-		strcpy( HC[i].code, code_string+begin );
+		HC[i].code = (unsigned char*) malloc( (total-begin)*sizeof(unsigned char) );
+		strcpy( (char *)HC[i].code, (char *)code_string+begin ); //Becos strcpy requires two char* arguments
 	}
 	free( code_string );
 	//Write to HC_file
@@ -135,15 +137,8 @@ HuffmanCode generate_HC( HuffmanTree tree, int total, FILE *HC_file ){
 }
 	
 
-
 void Code_file( FILE *in, HuffmanCode HC, FILE *out ){
-	//Map
-	char* code[128] = { NULL };
-	int i = 0;
-	int j = 1;
-	while( i++ < 128 ){
-		if( i == HC[j].value ){ code[i] = HC[j++].code; }
-	}
+	unsigned char **code = map_code_table( HC );
 	//Write
 	int ch;
 	while( (ch=fgetc(in)) != EOF ){
@@ -151,14 +146,49 @@ void Code_file( FILE *in, HuffmanCode HC, FILE *out ){
 			fprintf( out, "%s", code[ch] );
 		}
 	}
+	fputc( '\n', out ); //Add a '\n' at the end of file to simulate *nix file format
 	//Rewind
 	rewind( in );
 	rewind( out );
+	free( code );
 }
 
-//Waiting for implementation.
 void code_file( FILE *in, HuffmanCode HC, FILE *out ){
+	unsigned char **code = map_code_table( HC );
+
+	int32_t char_total = 0;
+	int ch;
+	while( (ch=fgetc(in)) != EOF ){
+		++char_total;
+	}
+	rewind( in );
+
+	/* 先写入 out-file 原文件总的字符数
+ 	 * 再将原文件每个字符对应的编码以bit的方式，8个一组
+ 	 * 以unsigned char的方式写入 out-file
+ 	 * 最后，如果最后几个bit组不成byte，直接写入
+ 	 */
+	fprintf( out, "%"PRId32, char_total );
+	unsigned char cur_byte = 0;
+	int cur_byte_remaining_length = 8;
+	while( (ch=fgetc(in)) != EOF ){
+		unsigned char *cur_bit_ptr = code[ch];
+		while( *cur_bit_ptr != '\0' ){
+			unsigned char cur_bit = *cur_bit_ptr++;
+			cur_byte |= ( cur_bit ) << ( --cur_byte_remaining_length );
+			if( cur_byte_remaining_length == 0 ){
+				fputc( cur_byte, out );
+				cur_byte_remaining_length = 8;
+			}
+		}
+	}
+printf( ">>Write to out-file complete\n" );
+	if( cur_byte_remaining_length != 8 ){
+		fputc( cur_byte, out );
+	}
+	fputc( '\n', out ); //Add a '\n' at the end of file to simulate *nix file format
 	
+	rewind( in );
 }
 
 void select_two_small( HuffmanTree tree, int n, int *s1, int *s2 ){
@@ -183,5 +213,15 @@ void select_two_small( HuffmanTree tree, int n, int *s1, int *s2 ){
 			}
 		}
 	}
+}
+
+unsigned char **map_code_table( HuffmanCode HC ){
+	unsigned char **code = (unsigned char**)malloc( sizeof(unsigned char*) * 128 );
+	int i = 0;
+	int j = 1;
+	while( i++ < 128 ){
+		if( i == HC[j].value ){ code[i] = HC[j++].code; }
+	}
+	return code;
 }
 

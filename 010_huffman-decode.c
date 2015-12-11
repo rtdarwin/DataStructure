@@ -1,5 +1,6 @@
 #include<stdio.h>
 #include<stdlib.h>
+#include<inttypes.h>
 #include<string.h>
 
 typedef struct{
@@ -8,29 +9,29 @@ typedef struct{
 	int parent, lchild, rchild;
 }HTNode, *HuffmanTree;
 
-HuffmanTree re_HT( FILE *HT_file );
-void Decode( FILE *coded, HuffmanTree HT, FILE *original );
-void decode( FILE *coded, HuffmanTree HT, FILE *original );
+HuffmanTree rebuild_HT( FILE *HT_file );
+void Decode( FILE *coded, HuffmanTree HT, FILE *origin );
+void decode( FILE *coded, HuffmanTree HT, FILE *origin );
 
 int main(void){
 	FILE *HT_file = fopen( "010_test.huffman-tree", "r" );
 	FILE *coded = fopen( "010_test.out", "r" );
-	FILE *original = fopen( "010_test.original", "w" );
+	FILE *origin = fopen( "010_test.origin", "w" );
 
-	HuffmanTree HT = re_HT( HT_file );
-	Decode( coded, HT, original );
+	HuffmanTree HT = rebuild_HT( HT_file );
+	Decode( coded, HT, origin );
 
 	fclose( HT_file );
 	fclose( coded );
-//The program will crush when I attemp to close File 'original'
-	fclose( original );
+//The program will crush when I attemp to close File 'origin'
+	fclose( origin );
 	free( HT );
 	return 0;
 }
 
 //-----------------IMPLEMENTATION------------------
 
-HuffmanTree re_HT( FILE *HT_file ){
+HuffmanTree rebuild_HT( FILE *HT_file ){
 	//Count lines
 	int count = 0;
 	int ch = 0;
@@ -50,28 +51,61 @@ HuffmanTree re_HT( FILE *HT_file ){
 	return HT;
 }
 
-void Decode( FILE *coded, HuffmanTree HT, FILE *original ){
-	//Get root location
-	int cur = HT[1].parent;
-	while( HT[cur].parent != 0 ){
-		cur = HT[cur].parent;
-	}
-	int root = cur;
+void Decode( FILE *coded, HuffmanTree HT, FILE *origin ){
+	int root = get_HT_root_location( HT );
 
+	int cur = root;
 	int ch = 0;
 	while( (ch=fgetc(coded)) != EOF ){
 		if( ch == '0'){ cur = HT[cur].lchild; }
 		else { cur = HT[cur].rchild; }
 		if( HT[cur].lchild == 0 ){
-			fputc( HT[cur].value, original );
+			fputc( HT[cur].value, origin );
 			cur = root; //树指针回退
 		}
 	}
-	fputc( '\n', original ); //Add a '\n' at the file end to simulate *nix file
+	fputc( '\n', origin ); //Add a '\n' at the file end to simulate *nix file
 
 	rewind( coded );
-	rewind( original );
+	rewind( origin );
 }
 
-void decode( FILE *coded, HuffmanTree HT, FILE *original ){
+void decode( FILE *coded, HuffmanTree HT, FILE *origin ){
+	int32_t total = 0;
+	fscanf( coded, "%d"SCNd32, &total );
+	
+	int bit_unused = 8;
+	int decoded_char_count = 0;
+	int HT_root = get_HT_root_location( HT );
+	int cur_location_in_HT = HT_root;
+	unsigned char cur_byte = fgetc( coded );
+	while( decoded_char_count <= total ){
+		if( bit_unused == 0 ){ //Read another byte
+			cur_byte = fgetc( coded );
+			bit_unused = 8;
+		}
+		int cur_bit = cur_byte >> --bit_unused;
+
+		if( cur_bit == '0'){ cur_location_in_HT = HT[cur_location_in_HT].lchild; }
+		else { cur_location_in_HT = HT[cur_location_in_HT].rchild; }
+
+		if( HT[cur_location_in_HT].lchild == 0 ){
+			fputc( HT[cur_location_in_HT].value, origin );
+			cur_location_in_HT = HT_root;
+			decoded_char_count++;
+		}
+	}
+
+	rewind( coded );
+	rewind( origin );
 }
+
+int get_HT_root_location( HuffmanTree HT ){
+	//Get root location
+	int cur = HT[1].parent;
+	while( HT[cur].parent != 0 ){
+		cur = HT[cur].parent;
+	}
+	return cur;
+}
+
