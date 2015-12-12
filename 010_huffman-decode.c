@@ -78,14 +78,16 @@ void decode( FILE *coded, HuffmanTree HT, FILE *origin ){
 	int HT_root = get_HT_root_location( HT );
 	int cur_location_in_HT = HT_root;
 	unsigned char cur_byte = fgetc( coded );
+	unsigned char mask = 0;
 	while( decoded_char_count < total ){
 		if( bit_unused == 0 ){ //Read another byte
 			cur_byte = fgetc( coded );
 			bit_unused = 8;
 		}
-		int cur_bit = cur_byte >> --bit_unused;
+		mask = ((unsigned)1) << --bit_unused;
+		unsigned cur_bit = (cur_byte & mask) ? 1 : 0;
 
-		if( cur_bit == '0'){ cur_location_in_HT = HT[cur_location_in_HT].lchild; }
+		if( cur_bit == 0 ){ cur_location_in_HT = HT[cur_location_in_HT].lchild; }
 		else { cur_location_in_HT = HT[cur_location_in_HT].rchild; }
 
 		if( HT[cur_location_in_HT].lchild == 0 ){

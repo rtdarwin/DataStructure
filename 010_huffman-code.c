@@ -169,7 +169,7 @@ void code_file( FILE *in, HuffmanCode HC, FILE *out ){
 	while( (ch=fgetc(in)) != EOF ){
 		unsigned char *cur_bit_ptr = code[ch];
 		while( *cur_bit_ptr != '\0' ){
-			unsigned char cur_bit = *cur_bit_ptr++;
+			unsigned char cur_bit =  (*cur_bit_ptr++ == '0') ?  0 : 1;
 			cur_byte |= ( cur_bit ) << ( --cur_byte_remaining_length );
 			if( cur_byte_remaining_length == 0 ){
 				fputc( cur_byte, out );
