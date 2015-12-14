@@ -11,8 +11,8 @@ typedef struct{
 
 HuffmanTree rebuild_HT( FILE *HT_file );
 int get_HT_root_location( HuffmanTree HT );
-void Decode( FILE *coded, HuffmanTree HT, FILE *origin );
-void decode( FILE *coded, HuffmanTree HT, FILE *origin );
+void Decode_file( FILE *coded, HuffmanTree HT, FILE *origin );
+void decode_file( FILE *coded, HuffmanTree HT, FILE *origin );
 
 int main(void){
 	FILE *HT_file = fopen( "010_test.huffman-tree", "r" );
@@ -20,7 +20,7 @@ int main(void){
 	FILE *origin = fopen( "010_test.origin", "w" );
 
 	HuffmanTree HT = rebuild_HT( HT_file );
-	decode( coded, HT, origin );
+	decode_file( coded, HT, origin );
 
 	fclose( HT_file );
 	fclose( coded );
@@ -51,7 +51,7 @@ HuffmanTree rebuild_HT( FILE *HT_file ){
 	return HT;
 }
 
-void Decode( FILE *coded, HuffmanTree HT, FILE *origin ){
+void Decode_file( FILE *coded, HuffmanTree HT, FILE *origin ){
 	int root = get_HT_root_location( HT );
 
 	int cur = root;
@@ -69,9 +69,9 @@ void Decode( FILE *coded, HuffmanTree HT, FILE *origin ){
 	rewind( origin );
 }
 
-void decode( FILE *coded, HuffmanTree HT, FILE *origin ){
+void decode_file( FILE *coded, HuffmanTree HT, FILE *origin ){
 	int32_t total = 0;
-	fscanf( coded, "%d"SCNd32, &total );
+	fscanf( coded, "%"SCNd32, &total );
 	
 	int bit_unused = 8;
 	int decoded_char_count = 0;
