@@ -5,6 +5,8 @@ _*
 *.o
 *.a
 *.swp
+tags
+.ycm*
 
 # makefile 
 makefile

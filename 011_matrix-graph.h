@@ -4,6 +4,7 @@
 #include<utility>
 #include<string>
 #include<cstring>
+#include<queue>
 #include<exception>
 #include<stdexcept>
 #include<inttypes.h>
@@ -43,6 +44,8 @@ public:
 	unsigned       out_degree( const vex_key_type& key ) const;
 	vex_info_type &get_vex_info( const vex_key_type& key ) const;
 	unsigned       get_location( const vex_key_type& key ) const;
+	void           DFS_traverse( void ) const;
+	void           BFS_traverse( void ) const;
 
 	//Modifier
 	istream       &read_content( istream& is );
@@ -60,6 +63,8 @@ public:
 
 private:
 	void init_matrix_with_zero( void );
+	void DFS( const unsigned& vex_loc, bool *visited ) const;
+	void BFS( const unsigned& vex_loc, bool *visited ) const;
 private:
 	arc_weight_type ** arc_matrix;
 	pair< vex_key_type, vex_info_type > * vexs;
@@ -425,6 +430,77 @@ template< typename vex_key_type, typename vex_info_type,
 	  typename arc_weight_type, GraphKind_t K >
 void
 MGraph_basic< vex_key_type, vex_info_type, arc_weight_type, K >::
+DFS_traverse( void ) const
+{
+	bool *visited = new bool[ vex_num ];
+	for( unsigned i = 0; i < vex_num; i++ ){
+		visited[ i ] = false;
+	}
+	for( unsigned vex_loc = 0; vex_loc < vex_num; vex_loc++ ){
+		if( ! visited[ vex_loc ] )
+			DFS( vex_loc, visited );
+	}
+	delete []visited;
+}
+
+
+template< typename vex_key_type, typename vex_info_type,
+	  typename arc_weight_type, GraphKind_t K >
+void
+MGraph_basic< vex_key_type, vex_info_type, arc_weight_type, K >::
+BFS_traverse( void ) const
+{
+//Something wrong here.
+	bool *visited = new bool[ vex_num ];
+	for( unsigned i = 0; i < vex_num; i++ ){
+		visited[ i ] = false;
+	}
+	deque< unsigned > for_traverse;
+	for( unsigned i = 0; i < vex_num; i++ ){
+		if( !visited[ i ] ){
+			for_traverse.push_back( i );
+			while( !for_traverse.empty() ){
+				unsigned cur_loc = for_traverse.front();
+				for_traverse.pop_front();
+				cout << vexs[ cur_loc ].first << " ";
+				visited[ cur_loc ] = true;
+				for( unsigned w = first_adj_vex( vexs[ cur_loc ].first );
+				     w;
+				     w = next_adj_vex( vexs[ cur_loc ].first , w ) ) {
+					unsigned w_loc = get_location( w );
+					if( !visited[ w_loc ] )
+						for_traverse.push_back( w_loc );
+				}
+			}
+		}
+	}
+	delete []visited;
+}
+
+template< typename vex_key_type, typename vex_info_type,
+	  typename arc_weight_type, GraphKind_t K >
+void
+MGraph_basic< vex_key_type, vex_info_type, arc_weight_type, K >::
+DFS( const unsigned& vex_loc, bool *visited ) const
+{
+	if( ! visited ){ return; }
+
+	cout << vexs[ vex_loc ].first << " ";
+	visited[ vex_loc ] = true;
+	for( vex_key_type w = first_adj_vex( vexs[ vex_loc ].first );
+	     w;
+	     w = next_adj_vex( vexs[ vex_loc ].first, w ) ) {
+		unsigned next_loc = get_location( w );
+		if( ! visited[ next_loc ] )
+			DFS( next_loc, visited );
+	}
+}
+
+
+template< typename vex_key_type, typename vex_info_type,
+	  typename arc_weight_type, GraphKind_t K >
+void
+MGraph_basic< vex_key_type, vex_info_type, arc_weight_type, K >::
 edit_vex_info( const vex_key_type& key, const vex_info_type& new_info )
 {
 	unsigned loc = get_location( key );
@@ -485,7 +561,7 @@ first_adj_vex( const vex_key_type& given_vex_key ) const
 			return vexs[ i ].first;
 	}
 
-	return 0; // 0 is not suitable
+	return 0; // -1 is not suitable
 }
 
 
